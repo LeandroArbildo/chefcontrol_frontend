@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#151515"/>
+  <ellipse cx="400" cy="320" rx="260" ry="165" fill="#232323"/>
+  <path d="M225 290c100-70 250 70 350 0M220 330c120-80 260 80 360 10M250 370c90-60 210 55 320-5" fill="none" stroke="#f7c95b" stroke-width="24" stroke-linecap="round"/>
+  <circle cx="305" cy="252" r="24" fill="#ef4444"/>
+  <circle cx="495" cy="360" r="22" fill="#22c55e"/>
+  <circle cx="552" cy="284" r="18" fill="#f97316"/>
+  <text x="400" y="540" text-anchor="middle" fill="#ffd978" font-family="Arial" font-size="38" font-weight="700">Tallarin chifa</text>
+</svg>

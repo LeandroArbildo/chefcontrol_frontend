@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#171717"/>
+  <ellipse cx="400" cy="320" rx="270" ry="175" fill="#222"/>
+  <ellipse cx="315" cy="295" rx="105" ry="72" fill="#b45309"/>
+  <ellipse cx="475" cy="308" rx="130" ry="82" fill="#d69a3a"/>
+  <circle cx="250" cy="400" r="34" fill="#f0b429"/>
+  <circle cx="330" cy="420" r="34" fill="#f0b429"/>
+  <circle cx="525" cy="270" r="18" fill="#ef4444"/>
+  <circle cx="430" cy="340" r="16" fill="#22c55e"/>
+  <text x="400" y="540" text-anchor="middle" fill="#ffd978" font-family="Arial" font-size="38" font-weight="700">Combo brasa + chifa</text>
+</svg>

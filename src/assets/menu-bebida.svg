@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#121826"/>
+  <rect x="300" y="145" width="190" height="330" rx="42" fill="#7f1d1d"/>
+  <rect x="330" y="95" width="130" height="82" rx="24" fill="#991b1b"/>
+  <rect x="326" y="252" width="140" height="95" rx="18" fill="#f8fafc" opacity=".9"/>
+  <circle cx="510" cy="205" r="54" fill="#f7c95b" opacity=".8"/>
+  <path d="M347 180c34-20 70-20 103 0" fill="none" stroke="#ffd978" stroke-width="12" opacity=".55"/>
+  <text x="400" y="540" text-anchor="middle" fill="#ffd978" font-family="Arial" font-size="38" font-weight="700">Bebidas</text>
+</svg>

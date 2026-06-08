@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#16120f"/>
+  <circle cx="305" cy="305" r="94" fill="#facc15"/>
+  <circle cx="430" cy="285" r="94" fill="#f8fafc"/>
+  <circle cx="500" cy="380" r="76" fill="#f97316"/>
+  <circle cx="305" cy="305" r="44" fill="#fde68a"/>
+  <circle cx="430" cy="285" r="44" fill="#e5e7eb"/>
+  <circle cx="500" cy="380" r="35" fill="#fed7aa"/>
+  <text x="400" y="540" text-anchor="middle" fill="#ffd978" font-family="Arial" font-size="38" font-weight="700">Cremas de la casa</text>
+</svg>

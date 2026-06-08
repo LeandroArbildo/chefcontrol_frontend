@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#191512"/>
+  <circle cx="400" cy="300" r="220" fill="#24201b"/>
+  <ellipse cx="345" cy="285" rx="130" ry="92" fill="#a94316"/>
+  <ellipse cx="470" cy="280" rx="118" ry="84" fill="#c25a1d"/>
+  <circle cx="300" cy="415" r="42" fill="#f0b429"/>
+  <circle cx="398" cy="430" r="42" fill="#f0b429"/>
+  <circle cx="500" cy="405" r="42" fill="#f0b429"/>
+  <path d="M219 171c98-76 260-86 370 5" fill="none" stroke="#ffcf6b" stroke-width="18" opacity=".35"/>
+  <text x="400" y="540" text-anchor="middle" fill="#ffd978" font-family="Arial" font-size="38" font-weight="700">Pollo a la brasa</text>
+</svg>
