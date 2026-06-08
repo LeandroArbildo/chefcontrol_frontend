@@ -1,10 +1,10 @@
-import polloImage from '../assets/menu-pollo.svg';
-import chaufaImage from '../assets/menu-chaufa.svg';
-import tallarinImage from '../assets/menu-tallarin.svg';
-import wantanImage from '../assets/menu-wantan.svg';
-import comboImage from '../assets/menu-combo.svg';
-import bebidaImage from '../assets/menu-bebida.svg';
-import cremasImage from '../assets/menu-cremas.svg';
+import polloImage from '../assets/photo-pollo-brasa.png';
+import chaufaImage from '../assets/photo-chaufa-pollo.png';
+import tallarinImage from '../assets/photo-tallarin-chifa.png';
+import wantanImage from '../assets/photo-wantan.png';
+import comboImage from '../assets/photo-combo-brasa-chaufa.png';
+import bebidaImage from '../assets/photo-bebidas.png';
+import cremasImage from '../assets/photo-cremas.png';
 
 export const roles = [
   { id: 'mozo', name: 'Mozo', route: '/mozo' },
