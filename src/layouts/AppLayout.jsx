@@ -1,4 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import ApiStatus from '../components/ApiStatus.jsx';
 import { roleNavigation } from '../routes/roleAccess.js';
 import { clearCurrentRole, getCurrentRole, getDefaultRouteForRole } from '../services/authService.js';
 
@@ -42,6 +43,9 @@ export default function AppLayout() {
       <main className="content">
         <Outlet />
       </main>
+
+      {/* Indicador de conexión al backend */}
+      <ApiStatus />
     </div>
   );
 }

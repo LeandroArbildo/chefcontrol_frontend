@@ -1,74 +1,99 @@
+import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import OrderCard from '../components/OrderCard.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import Section from '../components/Section.jsx';
-import { updateDeliveryStatus, useRestaurantState } from '../services/restaurantStore.js';
-
-const deliveryStatuses = ['pendiente', 'en camino', 'entregado'];
+import ToastContainer from '../components/ToastContainer.jsx';
+import { useToast } from '../hooks/useToast.js';
+import { useApiStore } from '../services/useApiStore.js';
 
 export default function DeliveryPanel() {
-  const { orders: allOrders } = useRestaurantState();
-  const deliveryOrders = allOrders.filter((order) => ['Delivery', 'Para llevar'].includes(order.type));
-  const readyForDispatch = deliveryOrders.filter((order) => ['listo', 'entregado'].includes(order.status));
-  const waitingKitchen = deliveryOrders.filter((order) => !['listo', 'entregado'].includes(order.status));
+  const { pedidos, loading, cambiarEstadoPedido } = useApiStore();
+  const { toasts, success, error: toastError } = useToast();
 
-  function updateDelivery(orderId, deliveryStatus) {
-    updateDeliveryStatus(orderId, deliveryStatus);
+  // Pedidos de tipo Delivery o Para llevar
+  const deliveryOrders = pedidos.filter(
+    (p) => p.type?.toLowerCase().includes('delivery') ||
+           p.type?.toLowerCase().includes('llevar')
+  );
+
+  const readyForDispatch = deliveryOrders.filter(
+    (p) => ['listo', 'entregado'].includes(p.status)
+  );
+  const waitingKitchen = deliveryOrders.filter(
+    (p) => !['listo', 'entregado', 'cancelado'].includes(p.status)
+  );
+
+  async function marcarEntregado(order) {
+    try {
+      await cambiarEstadoPedido(order._id, 'ENTREGADO');
+      success(`Pedido ${order.id} marcado como entregado`);
+    } catch (err) {
+      toastError(`Error: ${err.message}`);
+    }
   }
 
   return (
     <>
+      <ToastContainer toasts={toasts} />
       <PageHeader
         eyebrow="Despacho"
         title="Panel de Delivery"
-        description="Pedidos para llevar o delivery con seguimiento de salida y entrega."
+        description="Pedidos para llevar o delivery. Datos en vivo del backend."
       />
 
       <div className="metric-grid">
         <div className="metric-card">
-          <span>Por salir</span>
-          <strong>{readyForDispatch.filter((order) => (order.deliveryStatus || 'pendiente') === 'pendiente').length}</strong>
-          <small>Listos para despacho</small>
-        </div>
-        <div className="metric-card">
-          <span>En camino</span>
-          <strong>{deliveryOrders.filter((order) => order.deliveryStatus === 'en camino').length}</strong>
-          <small>Pedidos fuera del local</small>
+          <span>Por despachar</span>
+          <strong>
+            {readyForDispatch.filter((p) => p.status === 'listo').length}
+          </strong>
+          <small>Listos para salir</small>
         </div>
         <div className="metric-card">
           <span>Entregados</span>
-          <strong>{deliveryOrders.filter((order) => order.deliveryStatus === 'entregado').length}</strong>
-          <small>Pasaron a caja como entregados</small>
+          <strong>
+            {deliveryOrders.filter((p) => p.status === 'entregado').length}
+          </strong>
+          <small>Completados hoy</small>
+        </div>
+        <div className="metric-card">
+          <span>En cocina</span>
+          <strong>{waitingKitchen.length}</strong>
+          <small>Esperando preparacion</small>
         </div>
       </div>
 
-      <Section title="Pedidos listos para delivery">
-        <div className="card-grid">
-          {readyForDispatch.map((order) => {
-            const deliveryStatus = order.deliveryStatus || 'pendiente';
+      {loading && !deliveryOrders.length && (
+        <LoadingSpinner text="Cargando pedidos de delivery..." />
+      )}
 
-            return (
-              <OrderCard
-                order={{ ...order, status: deliveryStatus }}
-                key={order.id}
-                showPayment
-                actions={(
-                  <>
-                    {deliveryStatuses.map((status) => (
-                      <button
-                        className="ghost-button"
-                        disabled={deliveryStatus === status}
-                        key={status}
-                        type="button"
-                        onClick={() => updateDelivery(order.id, status)}
-                      >
-                        {status}
-                      </button>
-                    ))}
-                  </>
-                )}
-              />
-            );
-          })}
+      <Section title="Listos para despachar">
+        <div className="card-grid">
+          {readyForDispatch.map((order) => (
+            <OrderCard
+              order={order}
+              key={order.id}
+              showPayment
+              actions={(
+                <>
+                  {order.status !== 'entregado' ? (
+                    <button
+                      className="primary-button"
+                      type="button"
+                      onClick={() => marcarEntregado(order)}
+                    >
+                      Marcar entregado
+                    </button>
+                  ) : (
+                    <span style={{ color: '#22c55e', fontSize: '0.8rem' }}>✅ Entregado</span>
+                  )}
+                </>
+              )}
+            />
+          ))}
+          {!loading && readyForDispatch.length === 0 && (
+            <p className="empty-cart">No hay pedidos listos para despachar.</p>
+          )}
         </div>
       </Section>
 
@@ -77,7 +102,9 @@ export default function DeliveryPanel() {
           {waitingKitchen.map((order) => (
             <OrderCard order={order} key={order.id} showPayment />
           ))}
-          {waitingKitchen.length === 0 && <p className="empty-cart">No hay pedidos de delivery esperando cocina.</p>}
+          {!loading && waitingKitchen.length === 0 && (
+            <p className="empty-cart">No hay pedidos de delivery esperando cocina.</p>
+          )}
         </div>
       </Section>
     </>

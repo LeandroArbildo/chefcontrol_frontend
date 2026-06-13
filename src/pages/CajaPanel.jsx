@@ -1,67 +1,83 @@
 import { useState } from 'react';
-import OrderCard from '../components/OrderCard.jsx';
+import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import MetricCard from '../components/MetricCard.jsx';
+import OrderCard from '../components/OrderCard.jsx';
 import PageHeader from '../components/PageHeader.jsx';
 import Section from '../components/Section.jsx';
 import TableMap from '../components/TableMap.jsx';
+import ToastContainer from '../components/ToastContainer.jsx';
+import { useToast } from '../hooks/useToast.js';
 import { formatMoney, getOrderTotal } from '../services/orderService.js';
-import { addCashExpense, markOrderPaid, useRestaurantState } from '../services/restaurantStore.js';
+import { useApiStore } from '../services/useApiStore.js';
 
 const paymentMethods = ['efectivo', 'tarjeta', 'yape/plin'];
 
 export default function CajaPanel() {
-  const { orders: allOrders, movements } = useRestaurantState();
-  const orders = allOrders.filter((order) => ['listo', 'entregado'].includes(order.status));
+  const { pedidos, loading, cambiarEstadoPedido } = useApiStore();
+  const { toasts, success, error: toastError } = useToast();
   const [selectedPayment, setSelectedPayment] = useState('efectivo');
   const [receiptOrder, setReceiptOrder] = useState(null);
-  const [expenseConcept, setExpenseConcept] = useState('');
-  const [expenseAmount, setExpenseAmount] = useState('');
-  const income = movements
-    .filter((movement) => movement.type === 'ingreso')
-    .reduce((sum, movement) => sum + movement.amount, 0);
-  const expenses = movements
-    .filter((movement) => movement.type === 'egreso')
-    .reduce((sum, movement) => sum + movement.amount, 0);
-  const paidOrders = orders.filter((order) => order.paid).length;
 
-  function markAsPaid(orderId) {
-    markOrderPaid(orderId, selectedPayment);
-  }
+  // Pedidos listos para cobrar (LISTO o ENTREGADO)
+  const orders = pedidos.filter((p) => ['listo', 'entregado'].includes(p.status));
 
-  function openReceipt(order) {
-    setReceiptOrder(order);
-  }
+  // Métricas calculadas desde pedidos reales
+  const totalCobrado = pedidos
+    .filter((p) => p.status === 'entregado')
+    .reduce((sum, p) => sum + (p.total || 0), 0);
 
-  function printReceipt() {
-    window.print();
-  }
+  const pedidosPagados = pedidos.filter((p) => p.status === 'entregado').length;
 
-  function addExpense(event) {
-    event.preventDefault();
-    const amount = Number(expenseAmount);
-    if (!expenseConcept.trim() || !amount || amount <= 0) return;
+  const pedidosPorEstado = {
+    pendiente: pedidos.filter((p) => p.estadoBackend === 'PENDIENTE').length,
+    en_preparacion: pedidos.filter((p) => p.estadoBackend === 'EN_PREPARACION').length,
+    listo: pedidos.filter((p) => p.estadoBackend === 'LISTO').length
+  };
 
-    addCashExpense(expenseConcept.trim(), amount);
-    setExpenseConcept('');
-    setExpenseAmount('');
+  async function markAsPaid(order) {
+    try {
+      await cambiarEstadoPedido(order._id, 'ENTREGADO');
+      success(`Pedido ${order.id} marcado como entregado`);
+    } catch (err) {
+      toastError(`Error: ${err.message}`);
+    }
   }
 
   return (
     <>
+      <ToastContainer toasts={toasts} />
       <PageHeader
         eyebrow="Caja diaria"
         title="Ingresos y cobros del dia"
-        description="Caja ve pagos, mesas, cocina y movimientos operativos del dia."
+        description="Pedidos listos para cobrar. Los totales se calculan desde los pedidos del backend."
       />
 
+      {loading && !pedidos.length && <LoadingSpinner text="Cargando datos de caja..." />}
+
       <div className="metric-grid">
-        <MetricCard label="Ingresos" value={formatMoney(income)} helper="Cobros registrados hoy" />
-        <MetricCard label="Egresos" value={formatMoney(expenses)} helper="Gastos operativos del dia" />
-        <MetricCard label="Saldo del dia" value={formatMoney(income - expenses)} helper="Ingreso menos egreso" />
-        <MetricCard label="Mesas pagadas" value={`${paidOrders}/${orders.length}`} helper="Pedidos listos o entregados" />
+        <MetricCard
+          label="Total cobrado"
+          value={formatMoney(totalCobrado)}
+          helper="Pedidos con estado Entregado"
+        />
+        <MetricCard
+          label="Pedidos entregados"
+          value={pedidosPagados}
+          helper="Completados hoy"
+        />
+        <MetricCard
+          label="Por cobrar"
+          value={orders.filter((p) => p.status === 'listo').length}
+          helper="Listos esperando pago"
+        />
+        <MetricCard
+          label="Total pedidos"
+          value={pedidos.length}
+          helper="Todos los pedidos del dia"
+        />
       </div>
 
-      <Section title="Mesas del restaurante">
+      <Section title="Mesas del restaurante (en vivo)">
         <TableMap compact />
       </Section>
 
@@ -75,155 +91,112 @@ export default function CajaPanel() {
                 showPayment
                 actions={(
                   <>
-                    {!order.paid && (
+                    {order.status !== 'entregado' && (
                       <>
-                        <select value={selectedPayment} onChange={(event) => setSelectedPayment(event.target.value)}>
-                          {paymentMethods.map((method) => <option value={method} key={method}>{method}</option>)}
+                        <select
+                          value={selectedPayment}
+                          onChange={(e) => setSelectedPayment(e.target.value)}
+                        >
+                          {paymentMethods.map((method) => (
+                            <option value={method} key={method}>{method}</option>
+                          ))}
                         </select>
-                        <button className="primary-button" type="button" onClick={() => markAsPaid(order.id)}>
+                        <button
+                          className="primary-button"
+                          type="button"
+                          onClick={() => markAsPaid(order)}
+                        >
                           Marcar pagado
                         </button>
                       </>
                     )}
-                    <button className="ghost-button" type="button" onClick={() => openReceipt(order)}>
+                    {order.status === 'entregado' && (
+                      <span style={{ color: '#22c55e', fontSize: '0.8rem' }}>✅ Pagado</span>
+                    )}
+                    <button
+                      className="ghost-button"
+                      type="button"
+                      onClick={() => setReceiptOrder(order)}
+                    >
                       Comprobante
                     </button>
                   </>
                 )}
               />
             ))}
-          </div>
-        </Section>
-
-        <Section title="Comprobante">
-          <div className="receipt">
-            <strong>Chef Control</strong>
-            <span>RUC 20123456789</span>
-            <hr />
-            {orders.slice(0, 3).map((order) => (
-              <div className="receipt-line" key={order.id}>
-                <span>{order.id}</span>
-                <b>{formatMoney(getOrderTotal(order))}</b>
-              </div>
-            ))}
-            <hr />
-            <div className="receipt-line">
-              <span>Total mostrado</span>
-              <b>{formatMoney(orders.slice(0, 3).reduce((sum, order) => sum + getOrderTotal(order), 0))}</b>
-            </div>
-          </div>
-        </Section>
-      </div>
-
-      <div className="two-column">
-        <Section title="Movimientos del dia">
-          <form className="expense-form" onSubmit={addExpense}>
-            <label>
-              Concepto de egreso
-              <input
-                value={expenseConcept}
-                onChange={(event) => setExpenseConcept(event.target.value)}
-                placeholder="Aceite, gas, bolsas, movilidad..."
-              />
-            </label>
-            <label>
-              Monto
-              <input
-                min="1"
-                step="0.10"
-                type="number"
-                value={expenseAmount}
-                onChange={(event) => setExpenseAmount(event.target.value)}
-                placeholder="0.00"
-              />
-            </label>
-            <button className="primary-button" type="submit">
-              Registrar egreso
-            </button>
-          </form>
-
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Tipo</th>
-                  <th>Concepto</th>
-                  <th>Monto</th>
-                </tr>
-              </thead>
-              <tbody>
-                {movements.map((movement) => (
-                  <tr key={movement.id}>
-                    <td>{movement.type}</td>
-                    <td>{movement.concept}</td>
-                    <td>{formatMoney(movement.amount)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {!loading && orders.length === 0 && (
+              <p className="empty-cart">No hay pedidos listos para cobrar.</p>
+            )}
           </div>
         </Section>
 
         <Section title="Cocina ahora">
           <div className="status-summary">
-            <div><strong>{allOrders.filter((order) => order.status === 'pendiente').length}</strong><span>Pendientes</span></div>
-            <div><strong>{allOrders.filter((order) => order.status === 'en preparacion').length}</strong><span>En preparacion</span></div>
-            <div><strong>{allOrders.filter((order) => order.status === 'listo').length}</strong><span>Listos</span></div>
+            <div>
+              <strong>{pedidosPorEstado.pendiente}</strong>
+              <span>Pendientes</span>
+            </div>
+            <div>
+              <strong>{pedidosPorEstado.en_preparacion}</strong>
+              <span>En preparacion</span>
+            </div>
+            <div>
+              <strong>{pedidosPorEstado.listo}</strong>
+              <span>Listos</span>
+            </div>
           </div>
         </Section>
       </div>
 
+      {/* Modal de comprobante */}
       {receiptOrder && (
         <div className="modal-backdrop" role="presentation" onClick={() => setReceiptOrder(null)}>
-          <section className="receipt-modal" role="dialog" aria-modal="true" aria-label="Comprobante de pago" onClick={(event) => event.stopPropagation()}>
+          <section
+            className="receipt-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Comprobante de pago"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="receipt-ticket" id="receipt-print-area">
               <div className="receipt-ticket__brand">
                 <strong>Chef Control</strong>
-                <span>Polleria Chifa</span>
+                <span>Restaurante</span>
                 <small>RUC 20123456789</small>
               </div>
-
               <div className="receipt-ticket__meta">
                 <span>Comprobante simple</span>
                 <b>{receiptOrder.id}</b>
               </div>
-
               <div className="receipt-ticket__meta">
                 <span>{receiptOrder.table}</span>
                 <span>{receiptOrder.createdAt}</span>
               </div>
-
               <hr />
-
               <div className="receipt-ticket__items">
-                {receiptOrder.items.map((item) => (
-                  <div key={`${receiptOrder.id}-${item.productId}`}>
+                {receiptOrder.items.map((item, idx) => (
+                  <div key={idx}>
                     <span>{item.quantity} x {item.name}</span>
                     <b>{formatMoney(item.quantity * item.price)}</b>
                   </div>
                 ))}
               </div>
-
               <hr />
-
               <div className="receipt-ticket__total">
                 <span>Total</span>
-                <strong>{formatMoney(getOrderTotal(receiptOrder))}</strong>
+                <strong>{formatMoney(receiptOrder.total || getOrderTotal(receiptOrder))}</strong>
               </div>
-
               <div className="receipt-ticket__meta">
-                <span>Pago</span>
-                <b>{receiptOrder.paid ? receiptOrder.paymentMethod : selectedPayment}</b>
+                <span>Metodo</span>
+                <b>{selectedPayment}</b>
               </div>
-
               <p>Gracias por su preferencia.</p>
             </div>
-
             <div className="receipt-modal__actions">
               <button className="ghost-button" type="button" onClick={() => setReceiptOrder(null)}>
                 Cerrar
               </button>
-              <button className="primary-button" type="button" onClick={printReceipt}>
+              <button className="primary-button" type="button" onClick={() => window.print()}>
                 Imprimir
               </button>
             </div>
