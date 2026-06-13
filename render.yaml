@@ -15,4 +15,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        value: https://chefcontrol-java.onrender.com
+        value: https://chefcontrol-rf1o.onrender.com

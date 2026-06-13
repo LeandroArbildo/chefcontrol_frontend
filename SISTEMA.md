@@ -150,7 +150,7 @@ src/
 
 ## APIs REST
 
-**Base URL:** `https://chefcontrol-java.onrender.com/api`
+**Base URL:** `https://https://chefcontrol-rf1o.onrender.com/api`
 
 ### Categorías `/api/categorias`
 | Método | Path | Descripción |
@@ -255,7 +255,7 @@ PENDIENTE ──► EN_PREPARACION ──► LISTO ──► ENTREGADO
 
 El backend ya está en Render con:
 - **Servicio**: Web Service (Docker)
-- **URL**: `https://chefcontrol-java.onrender.com`
+- **URL**: `https://https://chefcontrol-rf1o.onrender.com`
 - **DB**: PostgreSQL `db_chefcontrol` en `virginia-postgres.render.com`
 
 Si necesitas re-deployar el backend:
@@ -283,7 +283,7 @@ Si necesitas re-deployar el backend:
    - **Publish Directory**: `dist`
 5. Variables de entorno (en Render dashboard):
    ```
-   VITE_API_URL = https://chefcontrol-java.onrender.com
+   VITE_API_URL = https://https://chefcontrol-rf1o.onrender.com
    ```
 6. Click **Create Static Site**
 
@@ -322,7 +322,7 @@ La **primera petición** al backend puede tardar **30-60 segundos** en despertar
 ### Frontend (`.env`)
 ```env
 # URL del backend en Render — cambiar si el servicio tiene otro nombre
-VITE_API_URL=https://chefcontrol-java.onrender.com
+VITE_API_URL=https://https://chefcontrol-rf1o.onrender.com
 ```
 
 > ⚠️ Las variables de Vite DEBEN empezar con `VITE_` para ser accesibles en el código del cliente.
@@ -392,7 +392,7 @@ const POLLING_INTERVAL = 8000; // milisegundos
 Una vez el backend esté corriendo, la documentación interactiva está disponible en:
 
 ```
-https://chefcontrol-java.onrender.com/swagger-ui.html
+https://https://chefcontrol-rf1o.onrender.com/swagger-ui.html
 ```
 
 Permite probar todos los endpoints directamente desde el navegador.
